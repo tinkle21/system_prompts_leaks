@@ -104,7 +104,7 @@ class AlpacaClient:
 
     # --- account ---
     def get_account(self):
-        return self._get("/v2/account")
+        return self._get("/account")
 
     def buying_power(self) -> float:
         return float(self.get_account()["buying_power"])
@@ -114,7 +114,7 @@ class AlpacaClient:
 
     # --- market data ---
     def latest_price(self, symbol: str) -> float:
-        data = self._get(f"/v2/stocks/{symbol}/quotes/latest")
+        data = self._get(f"/stocks/{symbol}/quotes/latest")
         ask = float(data["quote"]["ap"])
         bid = float(data["quote"]["bp"])
         return round((ask + bid) / 2, 2)
@@ -122,7 +122,7 @@ class AlpacaClient:
     # --- positions ---
     def get_position(self, symbol: str):
         try:
-            return self._get(f"/v2/positions/{symbol}")
+            return self._get(f"/positions/{symbol}")
         except requests.HTTPError as e:
             if e.response.status_code == 404:
                 return None
@@ -133,7 +133,7 @@ class AlpacaClient:
         """Fetch option contracts near target_expiry for symbol."""
         expiry_str = target_expiry.isoformat()
         data = self._get(
-            "/v2/options/contracts",
+            "/options/contracts",
             underlying_symbols=symbol,
             type=option_type,
             expiration_date_gte=(date.today() + timedelta(days=EXPIRY_MIN_DAYS)).isoformat(),
@@ -146,7 +146,7 @@ class AlpacaClient:
     def get_option_quote(self, symbol: str) -> dict:
         """Get latest quote for an option contract symbol."""
         try:
-            data = self._get(f"/v2/options/contracts/{symbol}/quotes/latest")
+            data = self._get(f"/options/contracts/{symbol}/quotes/latest")
             return data.get("quote", {})
         except Exception:
             return {}
@@ -161,16 +161,16 @@ class AlpacaClient:
             "time_in_force": "day",
             "limit_price": str(round(limit_price, 2)),
         }
-        return self._post("/v2/orders", payload)
+        return self._post("/orders", payload)
 
     def get_order(self, order_id: str) -> dict:
-        return self._get(f"/v2/orders/{order_id}")
+        return self._get(f"/orders/{order_id}")
 
     def cancel_order(self, order_id: str):
-        self._delete(f"/v2/orders/{order_id}")
+        self._delete(f"/orders/{order_id}")
 
     def close_position(self, symbol: str):
-        self._delete(f"/v2/positions/{symbol}")
+        self._delete(f"/positions/{symbol}")
 
 
 # ---------------------------------------------------------------------------
